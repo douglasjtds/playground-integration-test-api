@@ -45,6 +45,7 @@ OS:             [PREENCHER — ex: Windows 11 / macOS 14 / Ubuntu 22]
 | 3.3 | Testes de integração: Tasks e Comments | ⏳ | |
 | 3.4 | Testes de integração: Auth e Users | ⏳ | |
 | 3.5 | Pipeline CI/CD GitHub Actions | ⏳ | |
+| 3.6 | Testes E2E — smoke tests contra servidor real | ⏳ | |
 | 4.1 | Script generate-tests.ts (Claude API) | ⏳ | |
 | 4.2 | Execução e validação dos testes gerados | ⏳ | |
 | 4.3 | Analisador de cobertura com IA | ⏳ | |
@@ -395,6 +396,8 @@ npm run test
 [COLE O OUTPUT AQUI]
 ```
 
+**Arquivos esperados:** `.github/workflows/ci.yml`, `docs/architecture/decisions.md`, `README.md` atualizado
+
 ---
 
 ### [PASSO 3.5] — Pipeline CI/CD GitHub Actions
@@ -411,6 +414,42 @@ npm run test
 - ADR-002: [✅ / ❌]
 - ADR-003: [✅ / ❌]
 - ADR-004: [✅ / ❌]
+
+#### Observações
+
+---
+
+### [PASSO 3.6] — Testes E2E — smoke tests contra servidor real
+
+**Status:** ⏳  
+**Data:** [PREENCHER]
+
+#### Arquivos Criados
+- `vitest.e2e.config.ts` — ...
+- `tests/e2e/helpers/client.ts` — ...
+- `tests/e2e/smoke.test.ts` — X cenários
+
+#### BASE_URL utilizada nos testes locais
+<!-- Ex: http://localhost:3000 -->
+
+#### Cenários Cobertos
+- GET /health: [✅ / ❌]
+- POST /auth/register válido: [✅ / ❌]
+- POST /auth/register inválido (400): [✅ / ❌]
+- POST /auth/login correto: [✅ / ❌]
+- POST /auth/login incorreto (401): [✅ / ❌]
+- Fluxo Projeto → Task → Transição de status: [✅ / ❌]
+- Rotas protegidas sem token (401): [✅ / ❌]
+
+#### Resultado da Execução Local
+```
+BASE_URL=http://localhost:3000 npm run test:e2e
+
+[COLE O OUTPUT AQUI]
+```
+
+#### Diferença observada vs testes de integração (Supertest)
+<!-- O que os E2E pegaram que os de integração não pegariam? Documente — vai para o ebook. -->
 
 #### Observações
 

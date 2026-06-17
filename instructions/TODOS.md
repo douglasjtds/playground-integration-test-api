@@ -716,6 +716,86 @@ Adicione no README.md do projeto um badge do GitHub Actions e uma seção "Como 
 
 ---
 
+### Passo 3.6 — Testes E2E (smoke tests contra servidor real)
+
+**Objetivo:** Criar uma suíte leve de smoke tests que rodam contra o servidor HTTP *de verdade* — local ou em deploy — validando que o sistema inteiro está de pé: rede, middlewares, variáveis de ambiente e fluxos críticos de ponta a ponta.
+
+> **Por que isso é diferente dos testes de integração?**
+> O Supertest bypassa a camada de rede e injeta requests diretamente no Express em memória. Os testes E2E abrem uma conexão HTTP real contra uma porta real — o que significa que um erro de configuração de CORS, uma variável de ambiente faltando no servidor ou uma porta que não subiu vão ser capturados aqui, e não nos testes de integração.
+
+```
+Crie a suíte de testes E2E (smoke tests) do TaskFlow API:
+
+1. vitest.e2e.config.ts na raiz:
+   - include: ["tests/e2e/**/*.test.ts"]
+   - environment: "node"
+   - globals: true
+   - testTimeout: 30000 (requests reais são mais lentos)
+   - pool: "forks" com singleFork: true (roda sequencialmente — servidor é estado compartilhado)
+   - NÃO configure coverage aqui (E2E não mede cobertura de código)
+
+2. tests/e2e/helpers/client.ts:
+   - Crie um cliente HTTP baseado em fetch nativo (Node 20 já tem fetch global)
+   - BASE_URL lido de process.env.BASE_URL com fallback para "http://localhost:3000"
+   - Função api(method, path, body?, token?): Promise<{ status, data }> que:
+     - Monta a URL completa
+     - Define headers Content-Type e Authorization quando token for fornecido
+     - Retorna { status: number, data: any } para facilitar as asserções
+   - Exporte também BASE_URL para uso nos logs dos testes
+
+3. tests/e2e/smoke.test.ts com os seguintes cenários em ordem (cada um é independente — cria seus próprios dados):
+
+   Bloco "Servidor":
+   - GET /health retorna 200 com { status: "ok" }
+
+   Bloco "Autenticação":
+   - POST /auth/register com dados válidos retorna 201 e um token JWT
+   - POST /auth/register com email inválido retorna 400
+   - POST /auth/login com credenciais corretas retorna 200 e token
+   - POST /auth/login com senha errada retorna 401
+
+   Bloco "Fluxo crítico: Projeto → Task → Transição de status":
+   - Registra um usuário e obtém token
+   - POST /projects cria projeto e retorna 201
+   - GET /projects/:id retorna o projeto criado
+   - POST /tasks cria task no projeto e retorna 201
+   - PATCH /tasks/:id/status muda de TODO para IN_PROGRESS e retorna 200
+   - PATCH /tasks/:id/status tenta ir de TODO para DONE diretamente e retorna 400
+   - GET /tasks?projectId= retorna a task criada no filtro
+
+   Bloco "Proteção de rotas":
+   - GET /projects sem token retorna 401
+   - POST /projects sem token retorna 401
+
+4. Adicione ao package.json:
+   - "test:e2e": "vitest run --config vitest.e2e.config.ts"
+   - "test:e2e:local": "BASE_URL=http://localhost:3000 vitest run --config vitest.e2e.config.ts"
+   - "test:all": "npm run test && npm run test:integration && npm run test:e2e:local"
+     (substitua o test:all existente)
+
+5. Atualize .github/workflows/ci.yml adicionando um job "e2e":
+   - Depende do job "build"
+   - Inicia o servidor em background: npm start &
+   - Aguarda o servidor estar pronto: npx wait-on http://localhost:3000/health
+   - Roda: BASE_URL=http://localhost:3000 npm run test:e2e
+   - Adicione wait-on às devDependencies do package.json
+   - Comente no YAML quando esse job rodaria contra staging:
+     # Para staging: BASE_URL=${{ secrets.STAGING_URL }} npm run test:e2e
+
+6. Atualize docs/architecture/decisions.md adicionando:
+   - ADR-005: Estratégia E2E — smoke tests leves vs suíte completa
+     Contexto: precisamos validar o deploy sem duplicar todos os testes de integração
+     Decisão: ~10 smoke tests cobrindo o caminho crítico (auth + projeto + task + transição)
+     Consequências: cobertura menor, mas execução rápida e validação real do ambiente
+
+Ao final, rode o servidor localmente (npm run dev) em um terminal e execute
+npm run test:e2e:local no outro para verificar que todos os smoke tests passam.
+```
+
+**Arquivos esperados:** `vitest.e2e.config.ts`, `tests/e2e/helpers/client.ts`, `tests/e2e/smoke.test.ts`, `ci.yml` atualizado, `decisions.md` atualizado com ADR-005
+
+---
+
 ## FASE 4 — Demo: IA nos Testes
 
 ### Passo 4.1 — Script de geração de testes com Claude API
@@ -947,7 +1027,7 @@ Execute a revisão final do projeto TaskFlow API e gere o relatório de conclus�
    "feat: POC completa - testes de integração com IA, cobertura X%, Y testes"
 
 Ao final, liste no terminal:
-- ✅ ou ❌ para cada item da lista de "Resultado Esperado" do instructions/BRIEF.md
+- ✅ ou ❌ para cada item da lista de "Resultado Esperado" do instructions/README.md
 ```
 
 **Arquivos esperados:** `CHANGELOG.md`, `docs/taskflow-api-poc.pdf` final, `AI-LOGS-EXECUTION.md` completado
