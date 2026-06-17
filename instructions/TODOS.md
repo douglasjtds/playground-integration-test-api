@@ -10,7 +10,7 @@
 Antes de executar qualquer passo, cole este contexto no início da sua sessão do Claude Code:
 
 ```
-Você está construindo a TaskFlow API — um sistema de gerenciamento de projetos e tarefas em Node.js + TypeScript + Express. O projeto segue arquitetura em 3 camadas: Controller → Service → Repository. Os testes são feitos com Vitest + Supertest sem Docker (repositórios in-memory). Leia o arquivo instructions/README.md para entender o escopo completo antes de executar qualquer tarefa.
+Você está construindo a TaskFlow API — um sistema de gerenciamento de projetos e tarefas em Node.js + TypeScript + Express. O projeto segue arquitetura em 3 camadas: Controller → Service → Repository. Os testes são feitos com Vitest + Supertest sem Docker (repositórios in-memory). Leia o arquivo instructions/BRIEF.md para entender o escopo completo antes de executar qualquer tarefa.
 ```
 
 ---
@@ -24,7 +24,7 @@ Você está construindo a TaskFlow API — um sistema de gerenciamento de projet
 ```
 Crie o scaffold inicial do projeto TaskFlow API com as seguintes especificações:
 
-1. Crie toda a estrutura de pastas conforme descrita em instructions/README.md (src/, tests/, scripts/, docs/, .github/workflows/)
+1. Crie toda a estrutura de pastas conforme descrita em instructions/BRIEF.md (src/, tests/, scripts/, docs/, .github/workflows/)
 
 2. Crie o package.json com:
    - name: "taskflow-api"
@@ -947,7 +947,7 @@ Execute a revisão final do projeto TaskFlow API e gere o relatório de conclus�
    "feat: POC completa - testes de integração com IA, cobertura X%, Y testes"
 
 Ao final, liste no terminal:
-- ✅ ou ❌ para cada item da lista de "Resultado Esperado" do instructions/README.md
+- ✅ ou ❌ para cada item da lista de "Resultado Esperado" do instructions/BRIEF.md
 ```
 
 **Arquivos esperados:** `CHANGELOG.md`, `docs/taskflow-api-poc.pdf` final, `AI-LOGS-EXECUTION.md` completado

@@ -130,7 +130,6 @@ Request HTTP
 ## Estrutura de Pastas
 
 ```
-taskflow-api/
 ├── src/
 │   ├── app.ts                       # Express factory function (sem server.listen)
 │   ├── server.ts                    # Entry point — inicia o servidor
@@ -210,7 +209,7 @@ taskflow-api/
 │       └── 05-conclusao-e-proximos-passos.md
 │
 ├── instructions/                    # ← VOCÊ ESTÁ AQUI
-│   ├── README.md                    # Este arquivo
+│   ├── BRIEF.md                    # Este arquivo
 │   ├── TODOS.md                     # Prompts de execução passo a passo
 │   └── AI-LOGS-EXECUTION.md         # Log de execução para geração da documentação
 │
