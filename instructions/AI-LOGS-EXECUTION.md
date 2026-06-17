@@ -16,12 +16,12 @@
 ```
 Projeto:        TaskFlow API
 Tipo:           POC — Testes de Integração com IA
-Iniciado em:    [PREENCHER]
+Iniciado em:    2026-06-17
 Concluído em:   [PREENCHER]
-Executado por:  [PREENCHER — nome/time]
-Node.js:        [PREENCHER — ex: v20.14.0]
-npm:            [PREENCHER — ex: v10.7.0]
-OS:             [PREENCHER — ex: Windows 11 / macOS 14 / Ubuntu 22]
+Executado por:  Douglas Tertuliano + Claude Code (Opus 4.6)
+Node.js:        v25.6.1
+npm:            v10.x
+OS:             Windows 11 Enterprise 10.0.26100
 ```
 
 ---
@@ -30,9 +30,9 @@ OS:             [PREENCHER — ex: Windows 11 / macOS 14 / Ubuntu 22]
 
 | Passo | Título | Status | Data |
 |---|---|---|---|
-| 0.1 | Scaffold inicial e dependências | ⏳ | |
-| 0.2 | Configuração TypeScript e Vitest | ⏳ | |
-| 0.3 | App base Express e utilitários | ⏳ | |
+| 0.1 | Scaffold inicial e dependências | ✅ | 2026-06-17 |
+| 0.2 | Configuração TypeScript e Vitest | ✅ | 2026-06-17 |
+| 0.3 | App base Express e utilitários | ✅ | 2026-06-17 |
 | 1.1 | Modelos, tipos e DTOs | ⏳ | |
 | 1.2 | Camada de Repositórios | ⏳ | |
 | 1.3 | Camada de Services | ⏳ | |
@@ -61,67 +61,75 @@ OS:             [PREENCHER — ex: Windows 11 / macOS 14 / Ubuntu 22]
 
 ### [PASSO 0.1] — Scaffold inicial e dependências
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-17
 
 #### Arquivos Criados
-<!-- Liste cada arquivo com uma linha de descrição -->
-- `package.json` — ...
-- `.env.example` — ...
-- `.gitignore` — ...
+- `package.json` — todas as dependências conforme TODOS.md, type: "module", 12 scripts npm
+- `.env.example` — PORT, NODE_ENV, ANTHROPIC_API_KEY, JWT_SECRET
+- `.gitignore` — node_modules, dist, .env, coverage, *.pdf
+
+#### Estrutura de Pastas Criada
+23 diretórios: src/ (models, repositories/interfaces, services, controllers, routes, middlewares, utils, config), tests/ (unit/services, integration/helpers, integration/msw, e2e/helpers, ai-generated), scripts/, docs/ (architecture, ebook), .github/workflows/
 
 #### Decisões Tomadas
-<!-- Decisões que afetam o projeto ou diferem do proposto no TODOS.md -->
--
+- Seguimos exatamente as versões de dependências especificadas no TODOS.md
+- Nenhum desvio do plano original
 
 #### Problemas Encontrados
-<!-- Erros, conflitos de versão, ajustes necessários -->
--
+- `npm install` demorou ~2 minutos no Windows — warnings de deprecação em `glob@10/11`, `node-domexception` e `uuid@10` (não afetam o projeto)
 
 #### Observações
-<!-- Notas livres úteis para o ebook -->
+- 323 pacotes instalados com sucesso
+- lockfileVersion 3 gerado
 
 ---
 
 ### [PASSO 0.2] — Configuração TypeScript e Vitest
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-17
 
 #### Arquivos Criados
-- `tsconfig.json` — ...
-- `vitest.config.ts` — ...
-- `vitest.integration.config.ts` — ...
+- `tsconfig.json` — target ES2022, module NodeNext, strict true, path alias @/*, sourceMap e declaration habilitados
+- `vitest.config.ts` — testes unitários em tests/unit/**, cobertura v8 focada em src/services/**, reporters text+html+lcov
+- `vitest.integration.config.ts` — testes de integração em tests/integration/**, setupFiles apontando para helpers/setup.ts, testTimeout 15000ms, cobertura v8 em src/**
 
 #### Decisões Tomadas
--
+- Adicionado `resolve.alias` com `@` → `src/` em ambos os vitest configs para que o path alias do tsconfig funcione nos testes
+- Adicionado `declaration`, `declarationMap` e `sourceMap` no tsconfig para melhor DX
 
 #### Problemas Encontrados
--
+- `npx tsc --noEmit` retorna TS18003 quando não há arquivos .ts em src/ — comportamento esperado, validado com placeholder temporário
 
 #### Observações
+- Vitest v2.1.9 instalado, funcionando corretamente com a config
 
 ---
 
 ### [PASSO 0.3] — App base Express e utilitários
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-17
 
 #### Arquivos Criados
-- `src/app.ts` — ...
-- `src/server.ts` — ...
-- `src/utils/errors.ts` — ...
-- `src/utils/response.ts` — ...
-- `src/utils/validator.ts` — ...
+- `src/utils/errors.ts` — AppError (base) + 5 subclasses: NotFoundError (404), ValidationError (400, com array de erros), UnauthorizedError (401), ForbiddenError (403), ConflictError (409)
+- `src/utils/response.ts` — Helpers success(), created(), noContent(), paginated() — todas retornam formato padronizado { success, data?, message?, meta? }
+- `src/utils/validator.ts` — Middlewares validateBody(), validateQuery(), validateParams() que integram Zod com Express e lançam ValidationError
+- `src/app.ts` — Factory function createApp(repositories?) com cors, helmet, express.json(), rota /health e handler 404
+- `src/server.ts` — Entry point que lê PORT do env e inicia o servidor
 
 #### Decisões Tomadas
--
+- `createApp()` aceita `repositories` como parâmetro `unknown` por enquanto — será tipado como `Repositories` no Passo 1.2
+- Middleware 404 inline no app.ts (será extraído para `src/middlewares/notFound.ts` no Passo 1.5)
+- Todas as classes de erro usam `Object.setPrototypeOf` para garantir instanceof correto com herança de Error
 
 #### Problemas Encontrados
--
+- Nenhum problema de compilação — `npx tsc --noEmit` passou sem erros
 
 #### Observações
+- Teste via Vitest confirmou que createApp() retorna instância Express funcional (1 test passed)
+- Servidor inicia corretamente e responde GET /health com { status: "ok" }
 
 ---
 
@@ -630,4 +638,4 @@ BASE_URL=http://localhost:3000 npm run test:e2e
 
 ---
 
-*Log iniciado em: [DATA] | Última atualização: [DATA]*
+*Log iniciado em: 2026-06-17 | Última atualização: 2026-06-17*
