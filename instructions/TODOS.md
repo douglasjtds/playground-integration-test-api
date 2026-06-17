@@ -194,7 +194,6 @@ Crie todos os modelos TypeScript do TaskFlow API em src/models/:
 
 6. src/models/index.ts — re-exporta todos os modelos
 
-Documente cada campo com JSDoc em português.
 ```
 
 **Arquivos esperados:** `src/models/User.ts`, `Project.ts`, `Task.ts`, `Comment.ts`, `Auth.ts`, `index.ts`
@@ -241,7 +240,6 @@ Crie a camada de repositórios in-memory do TaskFlow API:
 
 6. src/repositories/index.ts — exporta as classes e uma função createRepositories() que retorna instâncias novas de todos os repositórios (útil para testes)
 
-Cada repositório deve ter comentários explicando cada método. O Map interno garante O(1) para buscas por ID.
 ```
 
 **Arquivos esperados:** `src/repositories/interfaces/IRepository.ts` e os 4 repositórios + `index.ts`
@@ -292,7 +290,7 @@ Crie a camada de services do TaskFlow API. Cada service recebe os repositórios 
    - login(data: LoginDTO): LoginResponse  ← valida credenciais, retorna JWT
    - verifyToken(token: string): AuthPayload
 
-Use as classes de erro de src/utils/errors.ts. Documente cada método com JSDoc incluindo @throws.
+Use as classes de erro de src/utils/errors.ts.
 ```
 
 **Arquivos esperados:** `src/services/UserService.ts`, `ProjectService.ts`, `TaskService.ts`, `CommentService.ts`, `AuthService.ts`
