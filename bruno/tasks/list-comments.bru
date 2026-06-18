@@ -1,0 +1,19 @@
+meta {
+  name: List Comments
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/tasks/:id/comments
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: {{taskId}}
+}

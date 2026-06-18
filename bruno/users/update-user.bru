@@ -1,0 +1,27 @@
+meta {
+  name: Update User (PUT)
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/users/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: {{userId}}
+}
+
+body:json {
+  {
+    "name": "John Updated",
+    "password": "newpassword123",
+    "role": "ADMIN"
+  }
+}

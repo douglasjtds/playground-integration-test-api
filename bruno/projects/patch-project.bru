@@ -1,0 +1,25 @@
+meta {
+  name: Patch Project (PATCH)
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/projects/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: {{projectId}}
+}
+
+body:json {
+  {
+    "status": "ARCHIVED"
+  }
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Create Project
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/projects
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "My Project",
+    "description": "Project description here",
+    "ownerId": "{{userId}}"
+  }
+}

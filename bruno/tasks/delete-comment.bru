@@ -1,0 +1,20 @@
+meta {
+  name: Delete Comment
+  type: http
+  seq: 9
+}
+
+delete {
+  url: {{baseUrl}}/tasks/:id/comments/:commentId
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: {{taskId}}
+  commentId: {{commentId}}
+}

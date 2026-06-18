@@ -1,0 +1,28 @@
+meta {
+  name: Update Project (PUT)
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/projects/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: {{projectId}}
+}
+
+body:json {
+  {
+    "name": "My Project Updated",
+    "description": "Updated description",
+    "ownerId": "{{userId}}",
+    "status": "ACTIVE"
+  }
+}

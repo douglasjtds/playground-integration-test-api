@@ -1,0 +1,25 @@
+meta {
+  name: Add Comment
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/tasks/:id/comments
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: {{taskId}}
+}
+
+body:json {
+  {
+    "content": "This is a comment"
+  }
+}

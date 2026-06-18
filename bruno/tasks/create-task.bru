@@ -1,0 +1,25 @@
+meta {
+  name: Create Task
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/tasks
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "projectId": "{{projectId}}",
+    "title": "My Task",
+    "description": "Task description here",
+    "priority": "MEDIUM",
+    "assigneeId": "{{userId}}"
+  }
+}

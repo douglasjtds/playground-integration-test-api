@@ -1,0 +1,28 @@
+meta {
+  name: Update Task (PUT)
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/tasks/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  id: {{taskId}}
+}
+
+body:json {
+  {
+    "title": "Task Updated",
+    "description": "Updated description",
+    "priority": "HIGH",
+    "assigneeId": "{{userId}}"
+  }
+}
