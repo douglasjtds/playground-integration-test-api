@@ -1,4 +1,4 @@
-export { IRepository } from './interfaces/IRepository.js';
+export type { IRepository } from './interfaces/IRepository.js';
 export { UserRepository } from './UserRepository.js';
 export { ProjectRepository } from './ProjectRepository.js';
 export { TaskRepository } from './TaskRepository.js';

@@ -38,8 +38,8 @@ OS:             Windows 11 Enterprise 10.0.26100
 | 1.3 | Camada de Services | ✅ | 2026-06-17 |
 | 1.4 | Camada de Controllers | ✅ | 2026-06-17 |
 | 1.5 | Rotas, Middlewares e Swagger | ✅ | 2026-06-17 |
-| 2.1 | Helpers de teste | ⏳ | |
-| 2.2 | Configuração MSW v2 | ⏳ | |
+| 2.1 | Helpers de teste | ✅ | 2026-06-17 |
+| 2.2 | Configuração MSW v2 | ✅ | 2026-06-17 |
 | 3.1 | Testes unitários dos Services | ⏳ | |
 | 3.2 | Testes de integração: Projects | ⏳ | |
 | 3.3 | Testes de integração: Tasks e Comments | ⏳ | |
@@ -299,41 +299,61 @@ OS:             Windows 11 Enterprise 10.0.26100
 
 ### [PASSO 2.1] — Helpers de teste
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-17
 
 #### Arquivos Criados
-- `tests/integration/helpers/app-factory.ts` — ...
-- `tests/integration/helpers/data-factory.ts` — ...
-- `tests/integration/helpers/auth-helper.ts` — ...
-- `tests/integration/helpers/setup.ts` — ...
+- `tests/integration/helpers/app-factory.ts` — Função `createTestApp()` que retorna `{ app, repositories }` com instâncias completamente isoladas. Interface `TestApp` exportada para tipagem.
+- `tests/integration/helpers/data-factory.ts` — 4 funções de geração de DTOs (`makeUser`, `makeProject`, `makeTask`, `makeComment`) com @faker-js/faker locale pt_BR + 3 funções seed (`makeUserSeed`, `makeProjectSeed`, `makeTaskSeed`) que criam e persistem diretamente nos repositórios.
+- `tests/integration/helpers/auth-helper.ts` — `getAuthToken(app, overrides?)` registra usuário via POST /auth/register e retorna JWT. `getAdminToken(app)` versão com role ADMIN. Ambas usam supertest.
+- `tests/integration/helpers/setup.ts` — setupFile do Vitest: configura NODE_ENV=test, JWT_SECRET fixo, PORT=0.
+- `tests/integration/helpers/index.ts` — Barrel export de todos os helpers (createTestApp, make*, getAuthToken, getAdminToken).
 
 #### Decisões Tomadas
-<!-- Ex: "Cada describe cria seu próprio app via createTestApp() para isolamento total" -->
--
+- Cada describe/it cria seu próprio app via `createTestApp()` para isolamento total — zero estado compartilhado entre testes
+- Funções seed (`makeUserSeed`, etc.) usam hash SHA-256 direto (mesmo algoritmo do UserService) para criar usuários válidos no repositório sem passar pela API
+- `@faker-js/faker` configurado com locale `pt_BR` para gerar dados realistas em português
+- `PORT=0` no setup para evitar conflito com dev server
+- Imports relativos com `../../../src/` em vez de alias `@/` pois os testes estão fora do rootDir do tsconfig
 
 #### Observações
+- `npx tsc --noEmit` passou sem erros — todos os tipos estão corretos
 
 ---
 
 ### [PASSO 2.2] — Configuração MSW v2
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-17
 
 #### Arquivos Criados
-- `tests/integration/msw/handlers.ts` — ...
-- `tests/integration/msw/server.ts` — ...
-- `tests/integration/msw/example.test.ts` — ...
+- `tests/integration/msw/handlers.ts` — 3 handlers: email notification (POST), ViaCEP (GET), fallback catch-all (retorna 500 + log de warning)
+- `tests/integration/msw/server.ts` — `setupServer` com handlers padrão + helpers `mockEmailSuccess()` e `mockEmailFailure()` para sobrescrita em testes específicos
+- `tests/integration/msw/example.test.ts` — 6 testes demonstrando: handler padrão de email, handler padrão de CEP, sobrescrita com mockEmailFailure(), sobrescrita com mockEmailSuccess(), sobrescrita inline com server.use(), e fallback para URLs não mapeadas
+- `tests/integration/helpers/setup.ts` — **Atualizado**: integração com MSW lifecycle — `beforeAll(server.listen)`, `afterEach(server.resetHandlers)`, `afterAll(server.close)`
 
 #### Serviços Externos Mockados
-<!-- Liste os serviços que foram mockados e por quê -->
--
+- **Serviço de notificação por email** (POST https://notifications.taskflow.io/send) — simula envio de emails transacionais, retorna 202 com messageId e status "queued"
+- **ViaCEP** (GET https://viacep.com.br/ws/:cep/json/) — simula consulta de CEP, retorna dados de endereço mockados de São Paulo
+- **Fallback global** (https://*) — captura qualquer request externo não mapeado, loga warning e retorna 500 para evitar requests reais escapando nos testes
 
 #### Decisões Tomadas
--
+- MSW v2.14.6 (API v2): usa `http.post()`, `http.get()`, `http.all()` e `HttpResponse.json()` em vez da API v1
+- `onUnhandledRequest: 'warn'` no server.listen() — loga requests não mapeados sem falhar o teste (útil para debug)
+- Handlers resetados após cada teste via `server.resetHandlers()` no afterEach — sobrescritas com `server.use()` não vazam entre testes
+- Fallback catch-all usa `https://*` para interceptar apenas requests HTTPS externos (não interfere com requests ao app Express local)
+
+#### Resultado da Execução
+```
+✓ tests/integration/msw/example.test.ts (6 tests) 132ms
+Test Files  1 passed (1)
+     Tests  6 passed (6)
+  Duration  6.33s
+```
 
 #### Observações
+- MSW funciona corretamente com Vitest + Node.js — interceptação de fetch nativo sem problemas
+- Padrão de sobrescrita (`server.use()` dentro do teste) demonstrado no example.test.ts serve de referência para o time
 
 ---
 
@@ -674,4 +694,4 @@ BASE_URL=http://localhost:3000 npm run test:e2e
 
 ---
 
-*Log iniciado em: 2026-06-17 | Última atualização: 2026-06-17 (Fase 1 completa — passos 0.1 a 1.5)*
+*Log iniciado em: 2026-06-17 | Última atualização: 2026-06-17 (Fase 2 completa — passos 2.1 e 2.2)*
