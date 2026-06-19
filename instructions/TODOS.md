@@ -41,15 +41,13 @@ Crie o scaffold inicial do projeto TaskFlow API com as seguintes especificaçõe
      - "test:integration": "vitest run --config vitest.integration.config.ts"
      - "test:integration:watch": "vitest --config vitest.integration.config.ts"
      - "test:all": "npm run test && npm run test:integration"
-     - "generate:tests": "tsx scripts/generate-tests.ts"
      - "generate:ebook": "tsx scripts/generate-ebook.ts"
-   - dependencies: express@^4.19.0, zod@^3.23.0, cors@^2.8.5, helmet@^7.1.0, jsonwebtoken@^9.0.2, @anthropic-ai/sdk@^0.28.0, swagger-ui-express@^5.0.1, swagger-jsdoc@^6.2.8, uuid@^10.0.0
+   - dependencies: express@^4.19.0, zod@^3.23.0, cors@^2.8.5, helmet@^7.1.0, jsonwebtoken@^9.0.2, swagger-ui-express@^5.0.1, swagger-jsdoc@^6.2.8, uuid@^10.0.0
    - devDependencies: typescript@^5.5.0, @types/node@^20.0.0, @types/express@^4.17.21, @types/cors@^2.8.17, @types/jsonwebtoken@^9.0.6, @types/swagger-ui-express@^4.1.6, @types/swagger-jsdoc@^6.0.4, @types/uuid@^10.0.0, vitest@^2.0.0, @vitest/coverage-v8@^2.0.0, supertest@^7.0.0, @types/supertest@^6.0.2, msw@^2.3.0, @faker-js/faker@^9.0.0, tsx@^4.16.0, md-to-pdf@^5.2.4
 
 3. Crie o .env.example:
    PORT=3000
    NODE_ENV=development
-   ANTHROPIC_API_KEY=sk-ant-sua-chave-aqui
    JWT_SECRET=taskflow-secret-key-poc
 
 4. Crie o .gitignore incluindo: node_modules, dist, .env, coverage, *.pdf gerado
@@ -697,7 +695,6 @@ O pipeline deve:
 4. Variáveis de ambiente no CI:
    - NODE_ENV: test
    - JWT_SECRET: test-secret-for-ci
-   - ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }} (opcional, só para Fase 4)
 
 5. Crie também docs/architecture/decisions.md com as seguintes ADRs (Architecture Decision Records):
    - ADR-001: Por que in-memory em vez de Docker nos testes
@@ -794,122 +791,9 @@ npm run test:e2e:local no outro para verificar que todos os smoke tests passam.
 
 ---
 
-## FASE 4 — Demo: IA nos Testes
+## FASE 4 — Documentação e Ebook
 
-### Passo 4.1 — Script de geração de testes com Claude API
-
-**Objetivo:** Criar o script que chama o Claude API e gera um arquivo de testes completo para uma rota.
-
-```
-Crie o script scripts/generate-tests.ts que usa o Claude API para gerar testes de integração automaticamente:
-
-O script deve:
-1. Receber como argumento o caminho de um arquivo de rotas: npx tsx scripts/generate-tests.ts src/routes/projectRoutes.ts
-
-2. Ler o arquivo de rota especificado
-
-3. Montar um prompt para o Claude que inclua:
-   - O conteúdo do arquivo de rotas
-   - O conteúdo dos modelos TypeScript relacionados (src/models/)
-   - Um exemplo de teste já existente (tests/integration/projects.test.ts) como referência de estilo
-   - Instruções específicas: "Gere um arquivo de testes de integração completo seguindo exatamente o mesmo padrão do exemplo. Use createTestApp(), data-factory e auth-helper. Cubra: todos os status codes esperados, casos de erro, validação de campos obrigatórios e pelo menos um happy path completo."
-
-4. Chamar @anthropic-ai/sdk com modelo claude-sonnet-4-6
-
-5. Salvar o resultado em tests/ai-generated/{nome-do-arquivo}.test.ts
-
-6. Exibir no terminal:
-   - Arquivo gerado com sucesso: tests/ai-generated/...
-   - Número de cenários detectados na resposta
-   - Comando para rodar: npx vitest run tests/ai-generated/...
-
-Trate erros: ANTHROPIC_API_KEY não configurada, arquivo de rota não encontrado, falha na API.
-
-Adicione no início do arquivo gerado um comentário:
-// ⚠️ Arquivo gerado automaticamente pelo Claude AI em {data}
-// Rota de origem: {arquivo}
-// Revise e ajuste antes de commitar.
-
-Crie também um arquivo docs/ebook/04-ia-nos-testes.md descrevendo o que este script faz e como ele se encaixa no fluxo de desenvolvimento.
-```
-
-**Arquivos esperados:** `scripts/generate-tests.ts`, `docs/ebook/04-ia-nos-testes.md`
-
----
-
-### Passo 4.2 — Executar a geração e validar os testes gerados
-
-**Objetivo:** Demonstrar o script em funcionamento e registrar o resultado para o ebook.
-
-```
-Execute e valide o script de geração de testes com IA:
-
-1. Configure a ANTHROPIC_API_KEY no arquivo .env
-
-2. Execute o script para gerar testes da rota de tasks:
-   npx tsx scripts/generate-tests.ts src/routes/taskRoutes.ts
-
-3. Analise o arquivo gerado em tests/ai-generated/:
-   - Os testes importam os helpers corretos?
-   - Os cenários cobrem os métodos HTTP da rota?
-   - Há casos de erro (400, 401, 404, 409)?
-   - Há pelo menos um happy path?
-
-4. Execute os testes gerados:
-   npx vitest run tests/ai-generated/
-
-5. Para qualquer teste que falhar:
-   - Identifique se é problema no teste gerado ou na implementação da API
-   - Corrija o teste gerado (isso é esperado — IA não é perfeita)
-   - Documente o que precisou ser ajustado
-
-6. Atualize docs/ebook/04-ia-nos-testes.md com:
-   - Print/exemplo do output do script
-   - Quais cenários a IA acertou de primeira
-   - O que precisou ser ajustado manualmente
-   - Avaliação: qual % dos testes gerados rodou sem ajuste?
-
-7. Documente os resultados no AI-LOGS-EXECUTION.md no passo 4.2
-
-Esta etapa é a demonstração central da POC: um engenheiro descreve uma rota, a IA gera os testes, o engenheiro revisa e ajusta. Capture isso.
-```
-
-**Arquivos esperados:** arquivo em `tests/ai-generated/`, `docs/ebook/04-ia-nos-testes.md` atualizado, log atualizado
-
----
-
-### Passo 4.3 — Analisador de cobertura com IA
-
-**Objetivo:** Criar um segundo script que usa Claude para analisar a cobertura e sugerir testes faltantes.
-
-```
-Crie o script scripts/analyze-coverage.ts que usa Claude para sugerir testes faltantes:
-
-1. O script deve:
-   - Rodar `npm run test:coverage` e capturar o relatório JSON de cobertura
-   - Ler os arquivos de teste existentes em tests/
-   - Montar um prompt para o Claude com: relatório de cobertura + arquivos de serviço não cobertos
-   - Pedir para Claude: "Analise a cobertura e liste os 5 cenários de teste mais críticos que estão faltando, com justificativa de risco para cada um"
-   - Salvar a análise em docs/coverage-analysis.md
-
-2. Adicione o script ao package.json:
-   "analyze:coverage": "npm run test:coverage && tsx scripts/analyze-coverage.ts"
-
-3. Execute o script e salve o resultado
-
-4. Crie docs/ebook/04-ia-nos-testes.md com uma seção adicional:
-   "IA como revisora de cobertura" — explique o que o script faz e mostre um exemplo do output
-
-Este script demonstra um segundo caso de uso da IA: não apenas gerando testes, mas identificando gaps de cobertura que um engenheiro poderia não perceber.
-```
-
-**Arquivos esperados:** `scripts/analyze-coverage.ts`, `docs/coverage-analysis.md`, `docs/ebook/04-ia-nos-testes.md` expandido
-
----
-
-## FASE 5 — Documentação e Ebook
-
-### Passo 5.1 — Capítulos do Ebook
+### Passo 4.1 — Capítulos do Ebook
 
 **Objetivo:** Criar os arquivos markdown de cada capítulo do ebook com base no que foi construído.
 
@@ -941,7 +825,13 @@ Crie o conteúdo dos capítulos do ebook em docs/ebook/. Use o AI-LOGS-EXECUTION
    - Como os mesmos testes rodam local e no CI/CD (GitHub Actions)
    - Guia prático: como escrever um novo teste de integração
 
-5. docs/ebook/05-conclusao-e-proximos-passos.md:
+5. docs/ebook/04-ia-nos-testes.md:
+   - Como o Claude Code CLI foi usado para gerar os testes da Fase 3
+   - Exemplos de prompts dados ao Claude Code e o que ele produziu
+   - O que funcionou bem e o que precisou de ajuste manual
+   - Reflexão: vantagens e limitações da abordagem
+
+6. docs/ebook/05-conclusao-e-proximos-passos.md:
    - O que foi demonstrado
    - Métricas finais (cobertura, número de testes, rotas)
    - Próximos passos para produção: Testcontainers Cloud, Pact/PactFlow, k6
@@ -950,11 +840,11 @@ Crie o conteúdo dos capítulos do ebook em docs/ebook/. Use o AI-LOGS-EXECUTION
 Escreva em português, tom técnico mas acessível. Cada capítulo deve ter entre 400-800 palavras.
 ```
 
-**Arquivos esperados:** os 5 capítulos em `docs/ebook/`
+**Arquivos esperados:** os 6 capítulos em `docs/ebook/`
 
 ---
 
-### Passo 5.2 — Script de geração do PDF (Ebook final)
+### Passo 4.2 — Script de geração do PDF (Ebook final)
 
 **Objetivo:** Criar o script que compila todos os arquivos .md em um único PDF formatado.
 
@@ -993,7 +883,7 @@ Adicione ao package.json: "ebook": "tsx scripts/generate-ebook.ts"
 
 ---
 
-### Passo 5.3 — Revisão final e relatório de conclusão
+### Passo 4.3 — Revisão final e relatório de conclusão
 
 **Objetivo:** Rodar todos os testes, verificar cobertura e gerar o relatório final da POC.
 
@@ -1007,7 +897,7 @@ Execute a revisão final do projeto TaskFlow API e gere o relatório de conclus�
    npm run test:coverage
 
 3. Com base nos resultados, atualize a seção "Resumo Final" em AI-LOGS-EXECUTION.md:
-   - Total de testes escritos (unitários + integração + ai-generated)
+   - Total de testes escritos (unitários + integração)
    - Cobertura de código final (%)
    - Rotas cobertas (quantas das 23+ rotas têm pelo menos 1 teste)
    - Tempo total de execução dos testes

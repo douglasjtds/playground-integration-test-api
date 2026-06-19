@@ -23,7 +23,7 @@ Esta POC demonstra que **a IA pode ser parte da solução**: gerando testes a pa
 | Como estruturar os testes de integração? | Pirâmide em camadas: unitários → integração → E2E/performance |
 | Como testar sem Docker na máquina? | Repositórios in-memory + pg-mem como alternativas viáveis |
 | Como os mesmos testes rodam local e em deploy? | Estratégia com `BASE_URL` + Supertest + GitHub Actions |
-| Como a IA entra no fluxo de testes? | Script que chama Claude API para gerar casos de teste automaticamente |
+| Como a IA entra no fluxo de testes? | Claude Code CLI gerando testes de integração a partir de prompts conversacionais |
 | Como documentar tudo ao final? | Logs estruturados de execução → ebook em PDF |
 
 ---
@@ -83,7 +83,7 @@ DELETE /tasks/:id/comments/:commentId
 | Testes HTTP | Supertest | Padrão de mercado para integração em Node.js |
 | Mocking externo | MSW v2 | Intercepta requests de serviços externos sem adapters |
 | Dados de teste | @faker-js/faker | Geração de fixtures realistas e repetíveis |
-| IA para testes | @anthropic-ai/sdk | Claude gerando casos de teste via API |
+| IA para testes | Claude Code CLI | Claude gerando testes via prompts conversacionais no terminal |
 | Docs API | swagger-ui-express + swagger-jsdoc | OpenAPI 3.0 documentado inline no código |
 | DB em testes | In-memory (Map) | Sem dependência de Docker ou serviço externo |
 | PDF | md-to-pdf | Geração do ebook a partir dos arquivos .md |
@@ -190,10 +190,8 @@ Request HTTP
 │   │   ├── tasks.test.ts
 │   │   ├── users.test.ts
 │   │   └── auth.test.ts
-│   └── ai-generated/                # Testes gerados pelo Claude na Fase 4
 │
 ├── scripts/
-│   ├── generate-tests.ts            # Chama Claude API → gera arquivo de teste
 │   └── generate-ebook.ts            # Compila docs/ebook/ em PDF
 │
 ├── docs/
@@ -238,7 +236,7 @@ Request HTTP
 3. Abra o arquivo TODOS.md em paralelo
 4. Execute os passos em ordem — um passo por sessão do Claude Code
 5. Após cada passo, atualize AI-LOGS-EXECUTION.md com o que foi feito
-6. Ao final (Fase 5), rode o prompt de geração do ebook em PDF
+6. Ao final (Fase 4), rode o prompt de geração do ebook em PDF
 ```
 
 ### Sobre os prompts em TODOS.md
@@ -250,12 +248,11 @@ Request HTTP
 
 ### Variáveis de ambiente
 
-Copie `.env.example` para `.env` e preencha antes de iniciar a Fase 4:
+Copie `.env.example` para `.env` e preencha:
 
 ```bash
 PORT=3000
 NODE_ENV=development
-ANTHROPIC_API_KEY=sk-ant-...   # Necessário apenas na Fase 4
 JWT_SECRET=taskflow-secret-key-poc
 ```
 
@@ -266,7 +263,7 @@ JWT_SECRET=taskflow-secret-key-poc
 - [ ] Node.js 20 ou superior (`node --version`)
 - [ ] npm 10 ou superior (`npm --version`)
 - [ ] VS Code com extensão Claude Code instalada
-- [ ] Chave de API da Anthropic (necessária apenas a partir da Fase 4)
+- [ ] Claude Code CLI instalado (para geração de testes assistida por IA)
 - [ ] Git configurado localmente
 
 ---
@@ -279,7 +276,7 @@ JWT_SECRET=taskflow-secret-key-poc
 - ✅ Testes de integração via Supertest sem Docker
 - ✅ Mocking de serviços externos com MSW v2
 - ✅ Pipeline CI/CD configurado no GitHub Actions
-- ✅ Script de IA (Claude) gerando testes automaticamente a partir de uma rota
+- ✅ Testes gerados com auxílio do Claude Code CLI a partir de prompts conversacionais
 - ✅ Ebook em PDF documentando toda a jornada técnica da POC
 
 ---
@@ -288,7 +285,7 @@ JWT_SECRET=taskflow-secret-key-poc
 
 | Arquivo | Finalidade |
 |---|---|
-| `TODOS.md` | 22 prompts prontos, organizados em 5 fases de execução |
+| `TODOS.md` | 19 prompts prontos, organizados em 4 fases de execução |
 | `AI-LOGS-EXECUTION.md` | Template de log por passo + seção de resumo final para o PDF |
 
 ---

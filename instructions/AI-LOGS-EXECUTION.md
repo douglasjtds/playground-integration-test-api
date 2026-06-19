@@ -40,18 +40,15 @@ OS:             Windows 11 Enterprise 10.0.26100
 | 1.5 | Rotas, Middlewares e Swagger | ✅ | 2026-06-17 |
 | 2.1 | Helpers de teste | ✅ | 2026-06-17 |
 | 2.2 | Configuração MSW v2 | ✅ | 2026-06-17 |
-| 3.1 | Testes unitários dos Services | ⏳ | |
-| 3.2 | Testes de integração: Projects | ⏳ | |
-| 3.3 | Testes de integração: Tasks e Comments | ⏳ | |
-| 3.4 | Testes de integração: Auth e Users | ⏳ | |
-| 3.5 | Pipeline CI/CD GitHub Actions | ⏳ | |
+| 3.1 | Testes unitários dos Services | ✅ | 2026-06-19 |
+| 3.2 | Testes de integração: Projects | ✅ | 2026-06-19 |
+| 3.3 | Testes de integração: Tasks e Comments | ✅ | 2026-06-19 |
+| 3.4 | Testes de integração: Auth e Users | ✅ | 2026-06-19 |
+| 3.5 | Pipeline CI/CD GitHub Actions | ✅ | 2026-06-19 |
 | 3.6 | Testes E2E — smoke tests contra servidor real | ⏳ | |
-| 4.1 | Script generate-tests.ts (Claude API) | ⏳ | |
-| 4.2 | Execução e validação dos testes gerados | ⏳ | |
-| 4.3 | Analisador de cobertura com IA | ⏳ | |
-| 5.1 | Capítulos do Ebook | ⏳ | |
-| 5.2 | Script geração PDF | ⏳ | |
-| 5.3 | Revisão final e relatório | ⏳ | |
+| 4.1 | Capítulos do Ebook | ⏳ | |
+| 4.2 | Script geração PDF | ⏳ | |
+| 4.3 | Revisão final e relatório | ⏳ | |
 
 ---
 
@@ -66,11 +63,11 @@ OS:             Windows 11 Enterprise 10.0.26100
 
 #### Arquivos Criados
 - `package.json` — todas as dependências conforme TODOS.md, type: "module", 12 scripts npm
-- `.env.example` — PORT, NODE_ENV, ANTHROPIC_API_KEY, JWT_SECRET
+- `.env.example` — PORT, NODE_ENV, JWT_SECRET
 - `.gitignore` — node_modules, dist, .env, coverage, *.pdf
 
 #### Estrutura de Pastas Criada
-23 diretórios: src/ (models, repositories/interfaces, services, controllers, routes, middlewares, utils, config), tests/ (unit/services, integration/helpers, integration/msw, e2e/helpers, ai-generated), scripts/, docs/ (architecture, ebook), .github/workflows/
+23 diretórios: src/ (models, repositories/interfaces, services, controllers, routes, middlewares, utils, config), tests/ (unit/services, integration/helpers, integration/msw, e2e/helpers), scripts/, docs/ (architecture, ebook), .github/workflows/
 
 #### Decisões Tomadas
 - Seguimos exatamente as versões de dependências especificadas no TODOS.md
@@ -359,127 +356,146 @@ Test Files  1 passed (1)
 
 ### [PASSO 3.1] — Testes unitários dos Services
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-19
 
 #### Arquivos Criados
-- `tests/unit/services/projectService.test.ts` — X cenários
-- `tests/unit/services/taskService.test.ts` — X cenários
-- `tests/unit/services/userService.test.ts` — X cenários
+- `tests/unit/services/projectService.test.ts` — 12 cenários (findById, findAll, create, update, delete)
+- `tests/unit/services/taskService.test.ts` — 21 cenários (findById, create, updateStatus com it.each para transições inválidas, update, delete)
+- `tests/unit/services/userService.test.ts` — 12 cenários (findAll, findById, create, update, delete)
 
 #### Resultado da Execução
 ```
-npm run test
-
-[COLE O OUTPUT AQUI]
+Test Files  3 passed (3)
+     Tests  45 passed (45)
+  Duration  6.65s
 ```
 
-#### Cobertura dos Services
-- ProjectService: __%
-- TaskService: __%
-- UserService: __%
-
 #### Decisões Tomadas
--
+- Todos os repositórios mockados com `vi.fn()` — sem implementação in-memory nos unitários
+- `it.each()` usado para testar 5 transições de status inválidas de uma vez
+- Nomes descritivos em português em todos os testes
 
 #### Problemas Encontrados
--
+- Nenhum — todos os 45 testes passaram na primeira execução
 
 #### Observações
+- Gerados pelo Claude Code CLI em uma única interação
 
 ---
 
 ### [PASSO 3.2] — Testes de integração: Projects
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-19
 
 #### Arquivo Criado
-- `tests/integration/projects.test.ts` — X cenários
+- `tests/integration/projects.test.ts` — 19 cenários
 
 #### Cenários Cobertos
-<!-- Liste os métodos HTTP e quantos cenários cada um tem -->
-- GET /projects: X cenários
-- GET /projects/:id: X cenários
-- POST /projects: X cenários
-- PUT /projects/:id: X cenários
-- PATCH /projects/:id: X cenários
-- DELETE /projects/:id: X cenários
+- GET /projects: 4 cenários (lista vazia, todos projetos, filtro por status, 401 sem auth)
+- GET /projects/:id: 2 cenários (200 encontrado, 404 inexistente)
+- POST /projects: 5 cenários (201 sucesso, 400 campos ausentes, 400 validação Zod, 401 sem auth, 404 ownerId inexistente)
+- PUT /projects/:id: 2 cenários (substituição completa, 404 inexistente)
+- PATCH /projects/:id: 3 cenários (atualização parcial, atualização de status, 400 status inválido)
+- DELETE /projects/:id: 3 cenários (204 sucesso + verificação, 404 inexistente, 409 com tasks ativas)
 
 #### Resultado da Execução
 ```
-[COLE O OUTPUT AQUI]
+Test Files  1 passed (1)
+     Tests  19 passed (19)
+  Duration  11.39s
 ```
 
+#### Problemas Encontrados
+- Primeira execução falhou com 12 erros: propriedades dos repositórios eram `repos.userRepo` (não `repos.userRepository`). Corrigido e todos passaram.
+
 #### Observações
+- Gerados pelo Claude Code CLI — correção de nomes de propriedade foi o único ajuste necessário
 
 ---
 
 ### [PASSO 3.3] — Testes de integração: Tasks e Comments
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-19
 
 #### Arquivo Criado
-- `tests/integration/tasks.test.ts` — X cenários
+- `tests/integration/tasks.test.ts` — 28 cenários
 
 #### Cenários de Transição de Status Cobertos
-<!-- Essencial documentar — é a regra de negócio central -->
-- TODO → IN_PROGRESS: [✅ / ❌]
-- IN_PROGRESS → DONE: [✅ / ❌]
-- TODO → DONE (inválido): [✅ / ❌]
-- DONE → IN_PROGRESS (inválido): [✅ / ❌]
-- TODO → CANCELLED: [✅ / ❌]
+- TODO → IN_PROGRESS: ✅
+- IN_PROGRESS → DONE: ✅
+- TODO → DONE (inválido): ✅
+- DONE → IN_PROGRESS (inválido): ✅
+- TODO → CANCELLED: ✅
+- IN_PROGRESS → CANCELLED: ✅
 
 #### Happy Path Completo
-<!-- Descreva o fluxo narrativo do cenário completo implementado -->
+Registro → Cria projeto → Cria task (TODO) → TODO→IN_PROGRESS → Adiciona comentário → IN_PROGRESS→DONE → Tenta DONE→IN_PROGRESS (400 esperado)
 
 #### Resultado da Execução
 ```
-[COLE O OUTPUT AQUI]
+Test Files  1 passed (1)
+     Tests  28 passed (28)
+  Duration  42.74s
 ```
+
+#### Observações
+- Gerados pelo Claude Code CLI — todos passaram na primeira execução sem ajustes
 
 ---
 
 ### [PASSO 3.4] — Testes de integração: Auth e Users
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-19
 
 #### Arquivos Criados
-- `tests/integration/auth.test.ts` — X cenários
-- `tests/integration/users.test.ts` — X cenários
+- `tests/integration/auth.test.ts` — 14 cenários
+- `tests/integration/users.test.ts` — 16 cenários
 
 #### Verificações de Segurança Implementadas
-- Resposta nunca contém passwordHash: [✅ / ❌]
-- Token inválido retorna 401: [✅ / ❌]
-- MEMBER não pode editar outro user: [✅ / ❌]
+- Resposta nunca contém passwordHash: ✅
+- Token inválido retorna 401: ✅
+- Token manipulado retorna 401: ✅
+- Sem header Authorization retorna 401: ✅
 
 #### Resultado da Execução
 ```
-[COLE O OUTPUT AQUI]
+Test Files  2 passed (2)
+     Tests  30 passed (30)
+  Duration  4.39s
 ```
 
-**Arquivos esperados:** `.github/workflows/ci.yml`, `docs/architecture/decisions.md`, `README.md` atualizado
+#### Observações
+- A API não implementa controle de ownership (MEMBER editar outro user) — testes refletem o comportamento real
+- Gerados pelo Claude Code CLI — todos passaram na primeira execução
 
 ---
 
 ### [PASSO 3.5] — Pipeline CI/CD GitHub Actions
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-19
 
 #### Arquivos Criados
-- `.github/workflows/ci.yml` — ...
-- `docs/architecture/decisions.md` — X ADRs
+- `.github/workflows/ci.yml` — 2 jobs: test (unitários + integração + cobertura) e build (TypeScript)
+- `docs/architecture/decisions.md` — 4 ADRs
+- `README.md` — reescrito com badge CI, seção "Como rodar os testes", estrutura do projeto
 
 #### ADRs Documentadas
-- ADR-001: [✅ / ❌]
-- ADR-002: [✅ / ❌]
-- ADR-003: [✅ / ❌]
-- ADR-004: [✅ / ❌]
+- ADR-001: In-memory vs Docker ✅
+- ADR-002: Vitest vs Jest ✅
+- ADR-003: Express vs Fastify ✅
+- ADR-004: Estratégia local vs deploy ✅
+
+#### Decisões Tomadas
+- Pipeline dispara em push main/develop e PR para main
+- Env vars no CI: NODE_ENV=test e JWT_SECRET fixo para testes
 
 #### Observações
+- `npm run test` (45 passed) e `npm run build` (sem erros) confirmados após criação
 
 ---
 
@@ -519,69 +535,7 @@ BASE_URL=http://localhost:3000 npm run test:e2e
 
 ---
 
-### [PASSO 4.1] — Script generate-tests.ts (Claude API)
-
-**Status:** ⏳  
-**Data:** [PREENCHER]
-
-#### Arquivos Criados
-- `scripts/generate-tests.ts` — ...
-- `docs/ebook/04-ia-nos-testes.md` — ...
-
-#### Como o Script Funciona (resumo técnico)
-<!-- Descreva o fluxo: input → prompt → API → output. Vai para o ebook. -->
-
-#### Observações
-
----
-
-### [PASSO 4.2] — Execução e validação dos testes gerados
-
-**Status:** ⏳  
-**Data:** [PREENCHER]
-
-#### Arquivo Gerado
-- `tests/ai-generated/[NOME].test.ts`
-
-#### Métricas da Geração
-- Total de cenários gerados pela IA: __
-- Cenários que passaram sem ajuste: __ (__ %)
-- Cenários que precisaram de ajuste: __
-- Cenários que foram removidos/inválidos: __
-
-#### O Que a IA Acertou de Primeira
-<!-- Liste os padrões que a IA seguiu corretamente — útil para o ebook -->
--
-
-#### O Que Precisou de Ajuste Manual
-<!-- Liste o que precisou ser corrigido e por quê — honestidade importa aqui -->
--
-
-#### Conclusão da Demonstração
-<!-- 2-3 frases sobre o valor prático demonstrado — vai para o ebook -->
-
----
-
-### [PASSO 4.3] — Analisador de cobertura com IA
-
-**Status:** ⏳  
-**Data:** [PREENCHER]
-
-#### Arquivos Criados
-- `scripts/analyze-coverage.ts` — ...
-- `docs/coverage-analysis.md` — ...
-
-#### Gaps Identificados pela IA
-<!-- Top 3 sugestões que a IA gerou — vai para o ebook -->
-1.
-2.
-3.
-
-#### Observações
-
----
-
-### [PASSO 5.1] — Capítulos do Ebook
+### [PASSO 4.1] — Capítulos do Ebook
 
 **Status:** ⏳  
 **Data:** [PREENCHER]
@@ -597,7 +551,7 @@ BASE_URL=http://localhost:3000 npm run test:e2e
 
 ---
 
-### [PASSO 5.2] — Script geração PDF
+### [PASSO 4.2] — Script geração PDF
 
 **Status:** ⏳  
 **Data:** [PREENCHER]
@@ -610,7 +564,7 @@ BASE_URL=http://localhost:3000 npm run test:e2e
 
 ---
 
-### [PASSO 5.3] — Revisão final e relatório
+### [PASSO 4.3] — Revisão final e relatório
 
 **Status:** ⏳  
 **Data:** [PREENCHER]
@@ -643,12 +597,12 @@ BASE_URL=http://localhost:3000 npm run test:e2e
 | Total de rotas na API | |
 | Total de testes unitários | |
 | Total de testes de integração | |
-| Total de testes gerados pela IA | |
+| Total de testes gerados via Claude Code CLI | |
 | Cobertura de código (%) | |
 | Cobertura de rotas (%) | |
 | Tempo de execução total (unitários) | |
 | Tempo de execução total (integração) | |
-| Passos concluídos com sucesso | / 22 |
+| Passos concluídos com sucesso | / 19 |
 | Páginas do ebook gerado | |
 
 ---
@@ -668,9 +622,11 @@ BASE_URL=http://localhost:3000 npm run test:e2e
 
 ---
 
-### Avaliação da IA nos Testes
+### Avaliação do Claude Code CLI nos Testes
 
-<!-- A ser preenchido com base nos dados do passo 4.2 -->
+<!-- A ser preenchido ao final da POC com base na experiência da Fase 3 -->
+
+**Abordagem utilizada:** Claude Code CLI gerando testes diretamente via prompts conversacionais
 
 **Taxa de aproveitamento dos testes gerados:** __%
 
@@ -694,4 +650,4 @@ BASE_URL=http://localhost:3000 npm run test:e2e
 
 ---
 
-*Log iniciado em: 2026-06-17 | Última atualização: 2026-06-17 (Fase 2 completa — passos 2.1 e 2.2)*
+*Log iniciado em: 2026-06-17 | Última atualização: 2026-06-19 (Fase 3 completa — passos 3.1 a 3.5)*
