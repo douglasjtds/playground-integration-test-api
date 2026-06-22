@@ -30,5 +30,6 @@ const swaggerSpec = swaggerJsdoc(options);
 
 /** Registra o Swagger UI na rota /api-docs */
 export function setupSwagger(app: Express): void {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  (app as any).use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 }

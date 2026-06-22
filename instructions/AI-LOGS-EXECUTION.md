@@ -17,7 +17,7 @@
 Projeto:        TaskFlow API
 Tipo:           POC — Testes de Integração com IA
 Iniciado em:    2026-06-17
-Concluído em:   [PREENCHER]
+Concluído em:   2026-06-22
 Executado por:  Douglas Tertuliano + Claude Code (Opus 4.6)
 Node.js:        v25.6.1
 npm:            v10.x
@@ -46,9 +46,9 @@ OS:             Windows 11 Enterprise 10.0.26100
 | 3.4 | Testes de integração: Auth e Users | ✅ | 2026-06-19 |
 | 3.5 | Pipeline CI/CD GitHub Actions | ✅ | 2026-06-19 |
 | 3.6 | Testes E2E — smoke tests contra servidor real | ✅ | 2026-06-22 |
-| 4.1 | Capítulos do Ebook | ⏳ | |
-| 4.2 | Script geração PDF | ⏳ | |
-| 4.3 | Revisão final e relatório | ⏳ | |
+| 4.1 | Capítulos do Ebook | ✅ | 2026-06-22 |
+| 4.2 | Script geração PDF | ✅ | 2026-06-22 |
+| 4.3 | Revisão final e relatório | ✅ | 2026-06-22 |
 
 ---
 
@@ -563,44 +563,69 @@ BASE_URL=http://localhost:3456 npx vitest run --config vitest.e2e.config.ts
 
 ### [PASSO 4.1] — Capítulos do Ebook
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-22
 
 #### Arquivos Criados
-- `docs/ebook/00-introducao.md` — X palavras
-- `docs/ebook/01-arquitetura.md` — X palavras
-- `docs/ebook/02-api-e-rotas.md` — X palavras
-- `docs/ebook/03-estrategia-de-testes.md` — X palavras
-- `docs/ebook/05-conclusao-e-proximos-passos.md` — X palavras
+- `docs/ebook/00-introducao.md` — 49 linhas (~500 palavras)
+- `docs/ebook/01-arquitetura.md` — 89 linhas (~650 palavras)
+- `docs/ebook/02-api-e-rotas.md` — 127 linhas (~700 palavras)
+- `docs/ebook/03-estrategia-de-testes.md` — 99 linhas (~600 palavras)
+- `docs/ebook/04-ia-nos-testes.md` — 62 linhas (~550 palavras)
+- `docs/ebook/05-conclusao-e-proximos-passos.md` — 73 linhas (~500 palavras)
+- `docs/ebook/styles.css` — estilos CSS para o PDF
+
+#### Decisões Tomadas
+- Cada capítulo escrito em português, tom técnico acessível, entre 400-800 palavras
+- Conteúdo baseado no AI-LOGS-EXECUTION.md, BRIEF.md, decisions.md e código-fonte
+- Capítulo 04 documenta a experiência real de uso do Claude Code CLI na Fase 3
 
 #### Observações
+- Gerados pelo Claude Code CLI em uma única interação
 
 ---
 
 ### [PASSO 4.2] — Script geração PDF
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-22
 
 #### Arquivos Criados
-- `scripts/generate-ebook.ts` — ...
-- `docs/taskflow-api-poc.pdf` — X páginas, X MB
+- `scripts/generate-ebook.ts` — script TypeScript com md-to-pdf, capa, separadores de página, header/footer
+- `docs/taskflow-api-poc.pdf` — 0.39 MB
+
+#### Decisões Tomadas
+- CSS em arquivo separado (`docs/ebook/styles.css`) porque md-to-pdf trata `stylesheet` como path, não CSS inline
+- Capa com título, subtítulo, versão, data e autores via HTML inline no markdown
+- `launch_options` com `--no-sandbox` para compatibilidade com Puppeteer no Windows
+- Script `"ebook"` adicionado ao package.json como alias de `generate:ebook`
+
+#### Problemas Encontrados
+- Primeira execução falhou: md-to-pdf tentou abrir o CSS como arquivo (ENOENT). Corrigido extraindo CSS para arquivo separado.
 
 #### Observações
+- PDF gerado com sucesso em 0.39 MB
 
 ---
 
 ### [PASSO 4.3] — Revisão final e relatório
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-22
 
 #### Arquivos Criados/Atualizados
-- `CHANGELOG.md` — ...
+- `CHANGELOG.md` — features organizadas por fase (0-4)
+- `AI-LOGS-EXECUTION.md` — métricas finais, aprendizados, avaliação do Claude Code CLI
+
+#### Fix aplicado
+- `src/config/swagger.ts:33` — cast `(app as any).use(...)` para resolver erro TS2769 de incompatibilidade de tipos entre versões do @types/express e @types/swagger-ui-express
 
 #### Resultado Final dos Testes
 ```
-[COLE O OUTPUT DO npm run test:all AQUI]
+npm run test — 45 passed (1.93s)
+npm run test:integration — 83 passed (10.32s)
+npm run test:e2e:local — 11 passed (requer servidor rodando)
+Total: 139 testes
 ```
 
 ---
@@ -620,16 +645,20 @@ BASE_URL=http://localhost:3456 npx vitest run --config vitest.e2e.config.ts
 
 | Métrica | Valor |
 |---|---|
-| Total de rotas na API | |
-| Total de testes unitários | |
-| Total de testes de integração | |
-| Total de testes gerados via Claude Code CLI | |
-| Cobertura de código (%) | |
-| Cobertura de rotas (%) | |
-| Tempo de execução total (unitários) | |
-| Tempo de execução total (integração) | |
-| Passos concluídos com sucesso | / 19 |
-| Páginas do ebook gerado | |
+| Total de rotas na API | 23 |
+| Total de testes unitários | 45 |
+| Total de testes de integração | 83 |
+| Total de testes E2E (smoke) | 11 |
+| Total de testes | 139 |
+| Total de testes gerados via Claude Code CLI | 139 (100%) |
+| Cobertura de código — statements (services) | 67.79% |
+| Cobertura de código — branches (services) | 93.54% |
+| Cobertura de rotas (%) | 100% (23/23 rotas com pelo menos 1 teste) |
+| Tempo de execução total (unitários) | 1.93s |
+| Tempo de execução total (integração) | 10.32s |
+| Tempo de execução total (E2E) | ~1s |
+| Passos concluídos com sucesso | 19 / 19 |
+| Tamanho do ebook gerado | 0.39 MB |
 
 ---
 
@@ -638,13 +667,23 @@ BASE_URL=http://localhost:3456 npx vitest run --config vitest.e2e.config.ts
 <!-- A ser preenchido pela IA com base nos logs acima -->
 
 **O que funcionou bem:**
--
+- Repositórios in-memory com `Map<string, T>` eliminaram completamente a dependência de Docker
+- O padrão `createTestApp()` garantiu isolamento total — zero flakiness por estado compartilhado
+- MSW v2 para mock de serviços externos é transparente para o código da aplicação
+- Prompts estruturados (com cenários e status codes) geraram testes de alta qualidade via Claude Code CLI
+- A arquitetura em 3 camadas com injeção de dependência tornou cada camada testável de forma independente
 
 **O que precisou de ajuste:**
--
+- Nomes de propriedade dos repositórios nos testes de integração (repos.userRepo vs repos.userRepository)
+- Propagação de variáveis de ambiente (BASE_URL) para forks do Vitest no Windows
+- Incompatibilidade de tipos entre @types/express e @types/swagger-ui-express (resolvido com cast)
+- md-to-pdf trata `stylesheet` como path de arquivo, não CSS inline
 
 **O que mudaria numa próxima iteração:**
--
+- Adicionar testes unitários para AuthService e CommentService (cobertura atual: 0%)
+- Usar Testcontainers para validar queries SQL reais contra PostgreSQL
+- Implementar contract tests com Pact para integrações externas
+- Automatizar a validação de cobertura mínima no pipeline CI/CD
 
 ---
 
@@ -652,28 +691,26 @@ BASE_URL=http://localhost:3456 npx vitest run --config vitest.e2e.config.ts
 
 <!-- A ser preenchido ao final da POC com base na experiência da Fase 3 -->
 
-**Abordagem utilizada:** Claude Code CLI gerando testes diretamente via prompts conversacionais
+**Abordagem utilizada:** Claude Code CLI (Opus 4.6) gerando testes diretamente via prompts conversacionais no terminal
 
-**Taxa de aproveitamento dos testes gerados:** __%
+**Taxa de aproveitamento dos testes gerados:** >90% — a maioria dos testes passou na primeira execução, com ajustes pontuais em nomes de propriedade e configuração de ambiente
 
-**Melhor caso de uso demonstrado:**
+**Melhor caso de uso demonstrado:** Geração em lote de testes para APIs REST com rotas CRUD padronizadas, onde os cenários são repetitivos (200, 400, 401, 404, 409). A IA elimina o trabalho mecânico e permite focar nos cenários de negócio
 
-**Limitações observadas:**
+**Limitações observadas:** A IA pode inferir nomes de propriedade incorretos quando não lê o código-fonte exato. Problemas de runtime (env vars, tipos incompatíveis) só aparecem ao executar. Cenários que assumem comportamento não implementado (ex: ownership de MEMBER) precisam de validação
 
-**Recomendação para o time:**
+**Recomendação para o time:** Usar Claude Code CLI para gerar a primeira versão dos testes a partir de prompts estruturados (listar cenários com verbos HTTP e status codes esperados), executar para validar, e ajustar manualmente o que falhar. A IA acelera a escrita mas não substitui a execução e revisão
 
 ---
 
 ### Próximos Passos para Produção
 
-<!-- A ser preenchido pela IA com base nos ADRs e nas observações dos logs -->
-
-1.
-2.
-3.
-4.
-5.
+1. Substituir repositórios in-memory por PostgreSQL (Knex ou Prisma) e adicionar Testcontainers para testes de queries reais
+2. Implementar contract tests com Pact/PactFlow para validar integrações com serviços externos
+3. Adicionar load testing com k6 para cenários de carga realistas
+4. Integrar métricas de cobertura e taxa de falha em dashboard de observabilidade (Grafana/Datadog)
+5. Replicar a estratégia de testes para outros microserviços, extraindo helpers e data factories como pacote interno
 
 ---
 
-*Log iniciado em: 2026-06-17 | Última atualização: 2026-06-22 (Fase 3 completa — passos 3.1 a 3.6)*
+*Log iniciado em: 2026-06-17 | Última atualização: 2026-06-22 (POC completa — todas as 4 fases concluídas, 19/19 passos)*

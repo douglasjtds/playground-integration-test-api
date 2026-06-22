@@ -16,7 +16,8 @@
     "test:e2e:local": "BASE_URL=http://localhost:3000 vitest run --config vitest.e2e.config.ts",
     "test:all": "npm run test && npm run test:integration && npm run test:e2e:local",
     "generate:tests": "tsx scripts/generate-tests.ts",
-    "generate:ebook": "tsx scripts/generate-ebook.ts"
+    "generate:ebook": "tsx scripts/generate-ebook.ts",
+    "ebook": "tsx scripts/generate-ebook.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.28.0",
