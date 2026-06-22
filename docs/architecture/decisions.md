@@ -108,3 +108,37 @@ O `BASE_URL` é configurável via variável de ambiente, permitindo rodar os mes
 - Requer manutenção de múltiplas configurações de teste
 - Smoke tests dependem de um servidor rodando (setup mais complexo no CI)
 - Possível falsa confiança se apenas testes in-memory passam mas o banco real falha
+
+---
+
+## ADR-005: Estratégia E2E — smoke tests leves vs suíte completa
+
+### Contexto
+
+Os testes de integração via Supertest injetam requests diretamente no Express sem abrir uma porta HTTP. Isso não valida problemas reais de deploy: CORS, binding de porta, variáveis de ambiente faltando ou middlewares que dependem da camada de rede. Precisamos validar o ambiente real sem duplicar toda a suíte de integração.
+
+### Decisão
+
+Criamos uma suíte leve de **~10 smoke tests** que fazem requests HTTP reais via `fetch` nativo (Node 20+) contra um servidor rodando em uma porta real. O `BASE_URL` é configurável via variável de ambiente, permitindo rodar os mesmos testes contra `localhost:3000` (desenvolvimento/CI) ou contra um ambiente de staging.
+
+A suíte cobre apenas o **caminho crítico**:
+- Health check (servidor está de pé)
+- Autenticação (register + login)
+- Fluxo completo: projeto → task → transições de status
+- Proteção de rotas (401 sem token)
+
+Vitest roda com `pool: 'forks'` e `singleFork: true` para execução sequencial, já que o servidor é estado compartilhado. Não coletamos coverage nos testes E2E.
+
+### Consequências
+
+**Positivas:**
+- Valida a superfície real de deploy — captura erros de configuração que Supertest não vê
+- Nenhuma dependência extra além de `fetch` nativo e `wait-on` (para CI)
+- Reutilizável para validação de staging com uma simples mudança de `BASE_URL`
+- Execução rápida (~10 testes vs centenas de integração)
+
+**Negativas:**
+- Cobertura de cenários menor que os testes de integração
+- Requer servidor rodando (setup mais complexo no CI)
+- Estado in-memory é perdido a cada restart — não testa persistência real
+- Execução sequencial é mais lenta que paralela

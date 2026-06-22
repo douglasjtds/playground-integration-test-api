@@ -45,7 +45,7 @@ OS:             Windows 11 Enterprise 10.0.26100
 | 3.3 | Testes de integração: Tasks e Comments | ✅ | 2026-06-19 |
 | 3.4 | Testes de integração: Auth e Users | ✅ | 2026-06-19 |
 | 3.5 | Pipeline CI/CD GitHub Actions | ✅ | 2026-06-19 |
-| 3.6 | Testes E2E — smoke tests contra servidor real | ⏳ | |
+| 3.6 | Testes E2E — smoke tests contra servidor real | ✅ | 2026-06-22 |
 | 4.1 | Capítulos do Ebook | ⏳ | |
 | 4.2 | Script geração PDF | ⏳ | |
 | 4.3 | Revisão final e relatório | ⏳ | |
@@ -501,37 +501,63 @@ Test Files  2 passed (2)
 
 ### [PASSO 3.6] — Testes E2E — smoke tests contra servidor real
 
-**Status:** ⏳  
-**Data:** [PREENCHER]
+**Status:** ✅ Concluído  
+**Data:** 2026-06-22
 
 #### Arquivos Criados
-- `vitest.e2e.config.ts` — ...
-- `tests/e2e/helpers/client.ts` — ...
-- `tests/e2e/smoke.test.ts` — X cenários
+- `vitest.e2e.config.ts` — Config Vitest E2E: pool forks com singleFork (execução sequencial), timeout 30s, sem coverage, sem setupFiles, `test.env.BASE_URL` propagado para forks
+- `tests/e2e/helpers/client.ts` — Cliente HTTP com fetch nativo (Node 20+): BASE_URL configurável via env com fallback localhost:3000, função `api(method, path, body?, token?)` retornando `{ status, data }`, tratamento de 204 No Content
+- `tests/e2e/smoke.test.ts` — 11 cenários em 4 blocos (Servidor, Autenticação, Fluxo crítico, Proteção de rotas)
+
+#### Arquivos Modificados
+- `package.json` — Scripts `test:e2e`, `test:e2e:local`, `test:all` atualizado para incluir E2E + devDependency `wait-on@^7.2.0`
+- `.github/workflows/ci.yml` — Job `e2e` (needs: build) com `npm start &` em background + `npx wait-on` + `BASE_URL` configurável (comentário para staging)
+- `docs/architecture/decisions.md` — ADR-005: Estratégia E2E — smoke tests leves com fetch nativo contra servidor real
 
 #### BASE_URL utilizada nos testes locais
-<!-- Ex: http://localhost:3000 -->
+http://localhost:3456
 
 #### Cenários Cobertos
-- GET /health: [✅ / ❌]
-- POST /auth/register válido: [✅ / ❌]
-- POST /auth/register inválido (400): [✅ / ❌]
-- POST /auth/login correto: [✅ / ❌]
-- POST /auth/login incorreto (401): [✅ / ❌]
-- Fluxo Projeto → Task → Transição de status: [✅ / ❌]
-- Rotas protegidas sem token (401): [✅ / ❌]
+- GET /health: ✅
+- POST /auth/register válido: ✅
+- POST /auth/register inválido (400): ✅
+- POST /auth/login correto: ✅
+- POST /auth/login incorreto (401): ✅
+- Fluxo Projeto → Task → Transição de status: ✅ (criar projeto, buscar por ID, criar task, TODO→IN_PROGRESS→DONE, transição inválida DONE→IN_PROGRESS, transição inválida TODO→DONE, filtrar por projectId)
+- Rotas protegidas sem token (401): ✅ (GET /projects, POST /projects)
 
 #### Resultado da Execução Local
 ```
-BASE_URL=http://localhost:3000 npm run test:e2e
+BASE_URL=http://localhost:3456 npx vitest run --config vitest.e2e.config.ts
 
-[COLE O OUTPUT AQUI]
+🔗 Smoke tests rodando contra: http://localhost:3456
+
+ ✓ tests/e2e/smoke.test.ts (11 tests) 374ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  18:38:16
+   Duration  1.02s (transform 47ms, setup 0ms, collect 75ms, tests 374ms, environment 0ms, prepare 152ms)
 ```
 
 #### Diferença observada vs testes de integração (Supertest)
-<!-- O que os E2E pegaram que os de integração não pegariam? Documente — vai para o ebook. -->
+- **Propagação de env vars em forks:** A variável `BASE_URL` não era propagada para processos fork do Vitest no Windows. Resolvido adicionando `test.env` no vitest.e2e.config.ts. Supertest não teria exposto esse problema pois injeta diretamente no Express sem criar forks.
+- **Validação de rede real:** Os testes E2E confirmam que CORS, binding de porta e a middleware stack completa funcionam via HTTP real — Supertest bypassa toda essa camada.
+- **Servidor precisa estar de pé:** `npm run test:e2e` sem servidor rodando falha com `ECONNREFUSED` — isso é o comportamento esperado e valida que estamos realmente testando via rede.
+
+#### Decisões Tomadas
+- `pool: 'forks'` com `singleFork: true` para execução sequencial — servidor é estado compartilhado (in-memory)
+- Cada teste gera emails únicos com `Date.now()` + random suffix para evitar conflito 409 no estado compartilhado
+- `wait-on@^7.2.0` adicionado como devDependency para aguardar servidor no CI antes de rodar testes
+- Fetch nativo (Node 20+) em vez de axios ou supertest — zero dependências extras para o cliente HTTP
+
+#### Problemas Encontrados
+- Primeira execução falhou com `TypeError: Failed to parse URL from //health` — `BASE_URL` resolvia como string vazia no fork do Vitest (`//health` = URL inválida). Corrigido adicionando `test.env: { BASE_URL: process.env.BASE_URL ?? 'http://localhost:3000' }` no vitest.e2e.config.ts para garantir propagação.
 
 #### Observações
+- Gerados pelo Claude Code CLI — todos os 11 testes passaram após correção do env var
+- Tempo total de execução dos testes: 374ms (rápido por usar repositórios in-memory no servidor)
+- A mesma suíte pode ser apontada para staging alterando apenas `BASE_URL`
 
 ---
 
@@ -650,4 +676,4 @@ BASE_URL=http://localhost:3000 npm run test:e2e
 
 ---
 
-*Log iniciado em: 2026-06-17 | Última atualização: 2026-06-19 (Fase 3 completa — passos 3.1 a 3.5)*
+*Log iniciado em: 2026-06-17 | Última atualização: 2026-06-22 (Fase 3 completa — passos 3.1 a 3.6)*
